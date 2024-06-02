@@ -2,9 +2,6 @@ from time import sleep
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 import progressbar 
 import random
@@ -56,17 +53,16 @@ limit = int(to_date[-2:]) - int(length_of_stay)
 with progressbar.ProgressBar(max_value=limit, widgets=widgets) as bar:
     for x in range(int(from_date[-2:]),limit):
         bar.update(x)
-
+        #Update URL with dynamic dates
         from_date_dyn = from_date[:8] + str('%02d' % x)
         to_date_dyn = to_date[:8] + str('%02d' % (x + int(length_of_stay)))
-
-        URL = 'https://www.kayak.com/flights/{source}-{destination}/{from_date_dyn}/{to_date_dyn}'.format(source=source,destination=destination,from_date_dyn=from_date_dyn, to_date_dyn=to_date_dyn)
+        URL = 'xxxxxxxxxxxxxxx/{source}-{destination}/{from_date_dyn}/{to_date_dyn}'.format(source=source,destination=destination,from_date_dyn=from_date_dyn, to_date_dyn=to_date_dyn)
         sleep(random.random())
         driver.get(URL)
+        #Fetch data
         attempt = 0
         while attempt < 3:
             try:
-                #wait = WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='nrc6-inner']")))
                 webContent = BeautifulSoup(driver.page_source, "html.parser")
                 informationAll = webContent.find_all("div", class_="nrc6-inner")
                 for information in informationAll:
@@ -87,17 +83,15 @@ with progressbar.ProgressBar(max_value=limit, widgets=widgets) as bar:
             except:
                 attempt+=1
                 print("Resending request!")
-
 #Close driver
 driver.quit()
 
 #Pull cheapest flight to the top
 scrapedData.sort(key=lambda x:x[-2])
-#print(scrapedData)
 
 # if stops.upper() == "Y":
 filterData("nonstop", scrapedData, 1)
 
 df = pd.DataFrame(scrapedData)
 df.columns = ["AIRLINE (DEPARTURE)","STOPS","TIME1","DEPARTURE","ARRIVAL","AIRLINE (RETURN)","STOPS","TIME2","DEPARTURE","ARIVAL","COST (ROUND TRIP)", "URL"]
-df.to_csv('/Users/carlosinastrilla/Documents/Python Projects/scrapedData.csv')
+df.to_csv('Your save location here')
