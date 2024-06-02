@@ -30,3 +30,4 @@ EXPECTED # OF DAYS TO BE GONE: 5
 
 This will query real-time results and provide the user with a progress bar to keep track of status!
 
+![Screen Shot 2024-06-02 at 5 14 06 PM](https://github.com/CarlosTheMan/flightCheck/assets/36449121/85e1aee9-2621-4f9b-bc71-dd147112a0a1)
