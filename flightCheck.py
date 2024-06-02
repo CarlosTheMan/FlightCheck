@@ -2,6 +2,9 @@ from time import sleep
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 import progressbar 
 import random
@@ -63,6 +66,7 @@ with progressbar.ProgressBar(max_value=limit, widgets=widgets) as bar:
         attempt = 0
         while attempt < 3:
             try:
+                wait = WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='nrc6-inner']")))
                 webContent = BeautifulSoup(driver.page_source, "html.parser")
                 informationAll = webContent.find_all("div", class_="nrc6-inner")
                 for information in informationAll:
