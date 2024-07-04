@@ -1,4 +1,3 @@
-import sys
 from time import sleep
 from selenium import webdriver
 from bs4 import BeautifulSoup
@@ -9,15 +8,6 @@ from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 import progressbar 
 import random
-
-# def filterData(filterString, list, val):
-#     n=0
-#     while n < len(list):
-#         if list[n][val] == filterString:
-#             n+=1
-#         else:
-#             list.pop(n)
-#             n=0
 
 # Validate user input
 def takeUserInput(parameter):
@@ -30,8 +20,8 @@ def takeUserInput(parameter):
     return user_input
 
 # ASK THE USER WHERE THEY WANT TO FLY
-print("====================================================")
-print("====================================================")
+print("=================================================================================")
+print("=================================================================================")
 source = takeUserInput("DEPARTURE")
 
 # #ASK THE USER WHERE THEY WANT TO FLY FROM - PROVIDE A LIST OF AIRPORTS
@@ -43,10 +33,10 @@ to_date = input("Return Date (0000-00-00): ")
 length_of_stay = input("Expected duration of trip: ")
 
 # #ASK THE USER IF THEY WANT A SPECIFIC AIRLINE
-airline = input("Preffered Airline? (N = No preference): ")
+airline = input("Preferred Airline? (N = No preference): ")
 
 # #ASK THE USER IF THEY WANT NON STOP FLIGHTS OR FLIGHTS WITH STOPS
-stops = input("Stops? (N = No Stops, Y = No preference): ")
+stops = input("Stops? (N = No Stops, NP = No preference): ")
 
 scrapedData = []
 chrome_options = webdriver.ChromeOptions()
@@ -80,31 +70,21 @@ with progressbar.ProgressBar(max_value=limit, widgets=widgets) as bar:
                     data = information.find_all("li", class_="hJSA-item")
                     for single_data in data:
                         times = single_data.find("div", class_="VY2U").find_all("span")
-                        ###
-                        #airline = single_data.find("div", class_="c5iUd-leg-carrier").find("img")['alt']
-                        #stops = single_data.find("span", class_="JWEO-stops-text").text
-                        #check = single_data.find("div", class_="xdW8").text[:-7]
                         data_holder.append(single_data.find("div", class_="c5iUd-leg-carrier").find("img")['alt'])
                         data_holder.append(single_data.find("span", class_="JWEO-stops-text").text)
                         data_holder.append((single_data.find("div", class_="xdW8").text)[:-7])
-                        ###
                         data_holder.append(times[0].text)
                         data_holder.append(times[2].text)
                     cost_data = information.find("div", class_="f8F1-price-text")
                     data_holder.append(float(cost_data.text.replace("$", "").replace(",", "")))
                     data_holder.append(URL)
-                    
-                    # Check Data
-                    # NON STOP
-                    print("BEFORE ============")
-                    print(data_holder)
 
                     if stops == "N":
                         if "nonstop" not in data_holder[1] and "nonstop" not in data_holder[6]:
-                            break
+                            continue
                     if airline != "N":
                         if airline not in data_holder[0] and airline not in data_holder[5]:
-                            break
+                            continue
                     scrapedData.append(data_holder)
                 break
             except:
@@ -119,6 +99,7 @@ df = pd.DataFrame(scrapedData)
 df.columns = ['AIRLINE (DEPARTURE)','STOPS','TIME1','DEPARTURE','ARRIVAL','AIRLINE (RETURN)','STOPS','TIME2','DEPARTURE','ARIVAL','COST', "URL"]
 
 # Get cheapest flights to top
-# print(df.sort_values(by=['COST']))
+sortedDF = df.sort_values(by=['COST'])
 
-df.to_csv('/Users/carlosinastrilla/Documents/Python Projects/scrapedData.csv')
+# Output to .csv
+sortedDF.to_csv('/Users/carlosinastrilla/Documents/Python Projects/scrapedData.csv')
