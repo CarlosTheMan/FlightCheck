@@ -1,3 +1,4 @@
+import sys
 from time import sleep
 from selenium import webdriver
 from bs4 import BeautifulSoup
@@ -9,37 +10,43 @@ import pandas as pd
 import progressbar 
 import random
 
-def filterData(filterString, list, val):
-    n=0
-    while n < len(list):
-        if list[n][val] == filterString:
-            n+=1
-        else:
-            list.pop(n)
-            n=0
+# def filterData(filterString, list, val):
+#     n=0
+#     while n < len(list):
+#         if list[n][val] == filterString:
+#             n+=1
+#         else:
+#             list.pop(n)
+#             n=0
 
+# Validate user input
 def takeUserInput(parameter):
     while True:
         user_input = input(f"{parameter}: ").upper()
-        if len(user_input) == 3:
-            break
-        else:
+        if len(user_input) != 3:
             print("Please type a valid Airport Code")
+        else:
+            break
     return user_input
 
 # ASK THE USER WHERE THEY WANT TO FLY
+print("====================================================")
+print("====================================================")
 source = takeUserInput("DEPARTURE")
 
 # #ASK THE USER WHERE THEY WANT TO FLY FROM - PROVIDE A LIST OF AIRPORTS
 destination = takeUserInput("DESTINATION")
 
 # #ASK THE USER WHAT DATE RANGE THEY WANT TO LOOK OVER - OVER MONTHS (USE OF TOOL) OR OVER SPECIFIC DATES
-from_date = input("FROM DATE (xxxx-xx-xx): ")
-to_date = input("TO DATE (xxxx-xx-xx): ")
-length_of_stay = input("EXPECTED # OF DAYS TO BE GONE: ")
+from_date = input("Departure Date (0000-00-00): ")
+to_date = input("Return Date (0000-00-00): ")
+length_of_stay = input("Expected duration of trip: ")
+
+# #ASK THE USER IF THEY WANT A SPECIFIC AIRLINE
+airline = input("Preffered Airline? (N = No preference): ")
 
 # #ASK THE USER IF THEY WANT NON STOP FLIGHTS OR FLIGHTS WITH STOPS
-#stops = input("NONSTOP FLIGHTS? (N = NO PREFERENCE, Y = YES): ")
+stops = input("Stops? (N = No Stops, Y = No preference): ")
 
 scrapedData = []
 chrome_options = webdriver.ChromeOptions()
@@ -56,13 +63,12 @@ limit = int(to_date[-2:]) - int(length_of_stay)
 with progressbar.ProgressBar(max_value=limit, widgets=widgets) as bar:
     for x in range(int(from_date[-2:]),limit):
         bar.update(x)
-        #Update URL with dynamic dates
         from_date_dyn = from_date[:8] + str('%02d' % x)
         to_date_dyn = to_date[:8] + str('%02d' % (x + int(length_of_stay)))
-        URL = 'xxxxxxxxxxxxxxx/{source}-{destination}/{from_date_dyn}/{to_date_dyn}'.format(source=source,destination=destination,from_date_dyn=from_date_dyn, to_date_dyn=to_date_dyn)
+
+        URL = 'https://www.kayak.com/flights/{source}-{destination}/{from_date_dyn}/{to_date_dyn}'.format(source=source,destination=destination,from_date_dyn=from_date_dyn, to_date_dyn=to_date_dyn)
         sleep(random.random())
         driver.get(URL)
-        #Fetch data
         attempt = 0
         while attempt < 3:
             try:
@@ -74,28 +80,45 @@ with progressbar.ProgressBar(max_value=limit, widgets=widgets) as bar:
                     data = information.find_all("li", class_="hJSA-item")
                     for single_data in data:
                         times = single_data.find("div", class_="VY2U").find_all("span")
+                        ###
+                        #airline = single_data.find("div", class_="c5iUd-leg-carrier").find("img")['alt']
+                        #stops = single_data.find("span", class_="JWEO-stops-text").text
+                        #check = single_data.find("div", class_="xdW8").text[:-7]
                         data_holder.append(single_data.find("div", class_="c5iUd-leg-carrier").find("img")['alt'])
                         data_holder.append(single_data.find("span", class_="JWEO-stops-text").text)
                         data_holder.append((single_data.find("div", class_="xdW8").text)[:-7])
+                        ###
                         data_holder.append(times[0].text)
                         data_holder.append(times[2].text)
                     cost_data = information.find("div", class_="f8F1-price-text")
-                    data_holder.append(cost_data.text.replace("$", "").replace(",", ""))
+                    data_holder.append(float(cost_data.text.replace("$", "").replace(",", "")))
                     data_holder.append(URL)
+                    
+                    # Check Data
+                    # NON STOP
+                    print("BEFORE ============")
+                    print(data_holder)
+
+                    if stops == "N":
+                        if "nonstop" not in data_holder[1] and "nonstop" not in data_holder[6]:
+                            break
+                    if airline != "N":
+                        if airline not in data_holder[0] and airline not in data_holder[5]:
+                            break
                     scrapedData.append(data_holder)
                 break
             except:
                 attempt+=1
-                print("Resending request!")
+                print("---Resending request!---")
+
 #Close driver
 driver.quit()
 
-#Pull cheapest flight to the top
-scrapedData.sort(key=lambda x:x[-2])
-
-# if stops.upper() == "Y":
-filterData("nonstop", scrapedData, 1)
-
+# Create data frame
 df = pd.DataFrame(scrapedData)
-df.columns = ["AIRLINE (DEPARTURE)","STOPS","TIME1","DEPARTURE","ARRIVAL","AIRLINE (RETURN)","STOPS","TIME2","DEPARTURE","ARIVAL","COST (ROUND TRIP)", "URL"]
-df.to_csv('Your save location here')
+df.columns = ['AIRLINE (DEPARTURE)','STOPS','TIME1','DEPARTURE','ARRIVAL','AIRLINE (RETURN)','STOPS','TIME2','DEPARTURE','ARIVAL','COST', "URL"]
+
+# Get cheapest flights to top
+# print(df.sort_values(by=['COST']))
+
+df.to_csv('/Users/carlosinastrilla/Documents/Python Projects/scrapedData.csv')
