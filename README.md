@@ -15,17 +15,26 @@ pip install flightCheck
 # Usage
 Provide airport of departure and arrival for example: (LAX,MIA,FLL)
 ```sh
-DEPARTURE: LAX
-DESTINATION: MCO
+Departure: LAX
+Destination: MCO
 ```
 Provide date range for which to search
 ```sh
-FROM DATE (xxxx-xx-xx): 2024-06-01
-TO DATE (xxxx-xx-xx): 2024-06-30
+Departure Date (0000-00-00): 2024-12-01
+Return Date (0000-00-00): 2024-12-31
 ```
 Provide expected # of days to be away
 ```sh
-EXPECTED # OF DAYS TO BE GONE: 5
+Expected duration of trip: 5
+```
+
+Provide preferred airline! (American Airlines, Spirit Airlines, Delta, etc.)
+```sh
+Preferred Airline? (N = No preference): Spirit Airlines
+```
+Provide response if stops are preferred
+```sh
+Stops? (N = No Stops, NP = No preference): N
 ```
 
 This will query real-time results and provide the user with a progress bar to keep track of status!
