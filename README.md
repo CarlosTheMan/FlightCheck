@@ -30,11 +30,11 @@ Expected duration of trip: 5
 
 Provide preferred airline! (American Airlines, Spirit Airlines, Delta, etc.)
 ```sh
-Preferred Airline? (N = No preference): Spirit Airlines
+Preferred Airline? (N = No preference): N
 ```
 Provide response if stops are preferred
 ```sh
-Stops? (N = No Stops, NP = No preference): N
+Stops? (N = No Stops, NP = No preference): NP
 ```
 
 This will query real-time results and provide the user with a progress bar to keep track of status!
